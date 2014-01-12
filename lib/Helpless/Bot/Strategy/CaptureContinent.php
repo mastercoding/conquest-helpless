@@ -99,19 +99,24 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
         $priorityQueue = new \SplPriorityQueue;
         foreach ($myRegions as $region) {
 
-            // loop neighbors
+            // loop neighbors in same continent
             $notMeNeighborCount = 0;
             foreach ($region->getNeighbors() as $neighbor) {
 
                 // at least not mine
                 if ($neighbor->getOwner() != $bot->getMap()->getYou()) {
-                    $notMeNeighborCount += 1 * ($neighbor->getContinentId() == $this->continent->getId() ? 10 : 1);
+
+                    // same continent
+                    if ($neighbor->getContinentId() == $this->continent->getId()) {
+                        $notMeNeighborCount += 1;
+                    }
                 }
 
             }
 
+            // any neighbors in this continent?
             if ($notMeNeighborCount > 0) {
-                $priorityQueue->insert($region, $notMeNeighborCount);
+                $priorityQueue->insert($region, $notMeNeighborCount * $region->getArmies());
             }
 
         }
@@ -125,7 +130,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             // ok, all armies on this one (better implementation to come)
             $amount = $amountLeft;
             $move->addPlaceArmies($topPriority->getId(), $amount);
-            
+
             return array($move, $amountLeft - $amount);
 
         }
@@ -209,9 +214,9 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                         }
 
                     } catch ( \Exception $e ) {
-                        
+
                         // region is border, move to other continent?
-                        
+
                     }
 
                 } else {
