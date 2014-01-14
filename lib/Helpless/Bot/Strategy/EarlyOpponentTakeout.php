@@ -14,14 +14,14 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
      *
      * @var int
      */
-    const ADDITIONAL_ARMIES_PERCENTAGE = 10;
+    const ADDITIONAL_ARMIES_PERCENTAGE = 30;
 
     /**
      * @inheritDoc
      */
     public function isDone(\Mastercoding\Conquest\Bot\AbstractBot $bot)
     {
-        return $bot->getMap()->getRound() > 5;
+        return $bot->getMap()->getRound() > 7;
     }
 
     /**
@@ -107,6 +107,7 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
         //  attack
         if ($regionFrom->getArmies() >= $neededArmies) {
             $move->addAttackTransfer($regionFrom->getId(), $regionTo->getId(), $regionFrom->getAttackableArmies());
+            $regionFrom->removeArmies($regionFrom->getAttackableArmies());
         }
 
         return $move;
