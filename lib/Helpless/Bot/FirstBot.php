@@ -6,6 +6,18 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
 {
 
     /**
+     * Offset in priority queue for capture continent
+     *
+     * @var int
+     */
+    const CAPTURE_CONTINENT_PRIORITY_OFFSET = 5;
+
+    /**
+     * Capture continent strategies
+     */
+    private $captureContinentStrategies;
+
+    /**
      * Setup listeners
      */
     public function __construct($map, $eventDispatcher)
@@ -14,6 +26,42 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
 
         // setup listeners
         $eventDispatcher->addListener(\Mastercoding\Conquest\Event::SETUP_MAP_COMPLETE, array($this, 'setupMapComplete'));
+        $eventDispatcher->addListener(\Mastercoding\Conquest\Event::AFTER_UPDATE_MAP, array($this, 'updateMap'));
+
+    }
+
+    /**
+     * After update map, this is called
+     */
+    public function updateMap()
+    {
+
+        // re-order strategies
+        $priorityQueue = new \SplPriorityQueue;
+        foreach ($this->captureContinentStrategies as $captureStrategy) {
+
+            $continent = $captureStrategy->getContinent();
+
+            // get region count and captured region count
+            $regions = count($continent->getRegions());
+            $myRegions = count(\Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($this->getMap(), $continent, $this->getMap()->getYou()));
+
+            // to capture
+            $priorityQueue->insert($captureStrategy, -1 * ($regions - $myRegions));
+
+        }
+
+        // set priorities
+        $i = 1;
+        foreach ($priorityQueue as $captureStrategy) {
+
+            $captureStrategy->setPriority(self::CAPTURE_CONTINENT_PRIORITY_OFFSET + $i);
+            $i++;
+
+        }
+
+        // sort
+        $this->strategiesChanged();
 
     }
 
@@ -45,11 +93,18 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
         });
 
         // captures
+        $this->captureContinentStrategies = new \SplObjectStorage;
         for ($i = 0; $i < count($continents); $i++) {
+
+            // create capture continent strategy
             $capture = new \Helpless\Bot\Strategy\CaptureContinent();
             $capture->setContinent($continents[$i]);
-            $capture->setPriority(5 + $i);
+            $capture->setPriority(self::CAPTURE_CONTINENT_PRIORITY_OFFSET + $i);
             $this->addStrategy($capture);
+
+            // store for re-ordering
+            $this->captureContinentStrategies->attach($capture);
+
         }
 
         // to new continent
