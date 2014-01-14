@@ -66,8 +66,8 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                 $myArmies = $region->getArmies();
                 foreach ($region->getNeighbors() as $neighbor) {
 
-                    // not own region
-                    if ($neighbor->getOwner() != $bot->getMap()->getYou()) {
+                    // not own region or neutral
+                    if ($neighbor->getOwner() != $bot->getMap()->getYou() && $neighbor->getOwner()->getName() != \Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL) {
 
                         $neededArmies = Helper\Amount::amountToDefend($neighbor->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
                         if ($neededArmies > $myArmies) {
@@ -183,7 +183,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
         $notAllMineNeighboredRegions = new \SplObjectStorage;
         foreach ($this->continent->getRegions() as $region) {
 
-            if ($bot->getMap()->getYou() == $region->getOwner() && !Helper\General::allYoursNeighbors($bot->getMap(), $region)) {
+            if ($bot->getMap()->getYou() == $region->getOwner() && !Helper\General::allYoursOrDifferentContinentNeutral($bot->getMap(), $region)) {
                 $notAllMineNeighboredRegions->attach($region);
             }
 
@@ -198,7 +198,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             }
 
             // all neighbors mine?
-            if ($region->getOwner() == $bot->getMap()->getYou() && Helper\General::allYoursNeighbors($bot->getMap(), $region)) {
+            if ($region->getOwner() == $bot->getMap()->getYou() && Helper\General::allYoursOrDifferentContinentNeutral($bot->getMap(), $region)) {
 
                 // continent captured? Move to edge
                 if (count($notAllMineNeighboredRegions) == 0) {
