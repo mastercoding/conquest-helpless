@@ -9,6 +9,5 @@
     "psr-0": {
       "Helpless\\": "lib/"
     }
-  },
-  "minimum-stability": "dev"
+  }
 }

@@ -193,7 +193,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
         foreach ($this->continent->getRegions() as $region) {
 
             // only one?
-            if ($region->getArmies() == 1) {
+            if ($region->getAttackableArmies() == 0) {
                 continue;
             }
 

@@ -17,6 +17,15 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
     const ADDITIONAL_ARMIES_PERCENTAGE = 30;
 
     /**
+     * Opponent starts with 5 armies per round and is not likely
+     * to capture a full continent within the first 7 moves (if this strategy is
+     * in place)
+     *
+     * @var int
+     */
+    const OPPONENT_ARMIES_PER_ROUND = 5;
+
+    /**
      * @inheritDoc
      */
     public function isDone(\Mastercoding\Conquest\Bot\AbstractBot $bot)
@@ -104,8 +113,8 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
         // wealthy enough to attack?
         $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($regionTo->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
 
-        //  attack
-        if ($regionFrom->getArmies() >= $neededArmies) {
+        //  attack (defend is better)
+        if ($regionFrom->getArmies() >= ($neededArmies + self::OPPONENT_ARMIES_PER_ROUND)) {
             $move->addAttackTransfer($regionFrom->getId(), $regionTo->getId(), $regionFrom->getAttackableArmies());
             $regionFrom->removeArmies($regionFrom->getAttackableArmies());
         }

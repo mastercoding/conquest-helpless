@@ -112,7 +112,7 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
         // all continents
         if ($this->onlyCapturedContinents($bot)) {
-
+            
             // find right region to cross
             $bestRegionToCross = $this->bestRegionToCross($bot);
 
