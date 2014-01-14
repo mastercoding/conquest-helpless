@@ -48,9 +48,9 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
      * continent with smallest bonus (we do not own)
      *
      * @param \Mastercoding\Conquest\bot\AbstractBot $bot
-     * @return \Mastercoding\Conquest\Object\Region
+     * @return \SplPriorityQueue
      */
-    public function bestRegionToCross(\Mastercoding\Conquest\Bot\AbstractBot $bot)
+    public function crossibleRegions(\Mastercoding\Conquest\Bot\AbstractBot $bot)
     {
 
         // crossable
@@ -80,7 +80,6 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
                             if (!Helper\General::continentCaptured($bot->getMap(), $neighborContinent)) {
 
                                 // ok, this is a region with link to continent we
-                                // do not own
                                 $priorityQueue->insert($region, -1 * $neighborContinent->getBonus());
 
                             }
@@ -95,12 +94,8 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
         }
 
-        // return top
-        if (count($priorityQueue) != 0) {
-            $top = $priorityQueue->top();
-            return $top;
-        }
-        return null;
+        // return all
+        return $priorityQueue;
 
     }
 
@@ -112,9 +107,10 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
         // all continents
         if ($this->onlyCapturedContinents($bot)) {
-            
-            // find right region to cross
-            $bestRegionToCross = $this->bestRegionToCross($bot);
+
+            // crossable regions
+            $crossableRegions = $this->crossibleRegions($bot);
+            $bestRegionToCross = $crossableRegions->top();
 
             // place all
             $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
@@ -143,14 +139,14 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
     public function attackTransfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
 
-        // all continents
-        if ($this->onlyCapturedContinents($bot)) {
+        // find right region to cross, this null should never happen
+        $crossableRegions = $this->crossibleRegions($bot);
+        if (count($crossableRegions) == 0) {
+            return $move;
+        }
 
-            // find right region to cross, this null should never happen
-            $fromRegion = $this->bestRegionToCross($bot);
-            if (null === $fromRegion) {
-                return $move;
-            }
+        // loop all crossable regions
+        foreach ($crossableRegions as $fromRegion) {
 
             // cross to
             $priorityQueue = new \SplPriorityQueue;
