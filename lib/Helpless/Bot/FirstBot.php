@@ -47,7 +47,7 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $myRegions = count(\Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($this->getMap(), $continent, $this->getMap()->getYou()));
 
             // to capture
-            $priorityQueue->insert($captureStrategy, -1 * ($regions - $myRegions));
+            $priorityQueue->insert($captureStrategy, ($regions - $myRegions));
 
         }
 
