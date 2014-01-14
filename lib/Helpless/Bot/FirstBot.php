@@ -14,15 +14,6 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
 
         // setup listeners
         $eventDispatcher->addListener(\Mastercoding\Conquest\Event::SETUP_MAP_COMPLETE, array($this, 'setupMapComplete'));
-        $eventDispatcher->addListener(\Mastercoding\Conquest\Event::AFTER_UPDATE_MAP, array($this, 'mapUpdate'));
-
-    }
-
-    /**
-     * After map has been updated
-     */
-    public function mapUpdate()
-    {
 
     }
 
@@ -65,6 +56,11 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
         $crossToNew = new \Helpless\Bot\Strategy\CrossToNewContinent;
         $crossToNew->setPriority(4);
         $this->addStrategy($crossToNew);
+
+        // early opponent takeout
+        $earlyOpponentTakeout = new \Helpless\Bot\Strategy\EarlyOpponentTakeout;
+        $earlyOpponentTakeout->setPriority(100);
+        $this->addStrategy($earlyOpponentTakeout);
 
         // pick armies random, we should never loose armies due to strategies not
         // needing them

@@ -209,7 +209,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                         if (null !== $closestEdge) {
 
                             $path = Helper\Path::shortestPath($bot->getMap(), $closestEdge, $region, true);
-                            $move->addAttackTransfer($region->getId(), $path[1]->getId(), $region->getArmies() - 1);
+                            $move->addAttackTransfer($region->getId(), $path[1]->getId(), $region->getAttackableArmies());
 
                         }
 
@@ -226,7 +226,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                     if (null !== $closestRegion) {
 
                         $path = Helper\Path::shortestPath($bot->getMap(), $closestRegion, $region, true);
-                        $move->addAttackTransfer($region->getId(), $path[1]->getId(), $region->getArmies() - 1);
+                        $move->addAttackTransfer($region->getId(), $path[1]->getId(), $region->getAttackableArmies());
                     }
 
                 }
@@ -250,6 +250,9 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             // wealthy enough to attack?
             $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
 
+            // top neighbor
+            $priorityQueue = new \SplPriorityQueue;
+
             // find wealthy neigbor
             foreach ($region->getNeighbors() as $neighbor) {
 
@@ -257,15 +260,45 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
                     // enough (needs to be >, we need 1 left on region)
                     if ($neighbor->getArmies() > $neededArmies) {
-
-                        // attack with this one
-                        $neighbor->removeArmies($neededArmies);
-                        $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
-                        break;
-
+                        $priorityQueue->insert($neighbor, $neighbor->getArmies());
                     }
 
                 }
+
+            }
+
+            // top
+            if (count($priorityQueue) > 0) {
+
+                // get wealthiest neighbor
+                $neighbor = $priorityQueue->top();
+
+                // other count
+                $otherOwners = 0;
+                foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
+                    if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou()) {
+                        $otherOwners++;
+                    }
+                }
+
+                // armies
+                if ($otherOwners == 1) {
+                    $neededArmies = $neighbor->getAttackableArmies();
+                } else {
+
+                    // now determine armies. We attack with more if we have the
+                    // overhand
+                    $factorBigger = $neighbor->getArmies() / $neededArmies;
+                    if ($factorBigger >= 3) {
+                        $neededArmies += floor(($factorBigger - 2) * $neededArmies);
+                    }
+
+                }
+
+                // attack with this one
+                $neighbor->removeArmies($neededArmies);
+                $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
+                break;
 
             }
 

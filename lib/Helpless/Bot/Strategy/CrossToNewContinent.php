@@ -174,8 +174,8 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
             if ($fromRegion->getArmies() > $neededArmies) {
 
                 // attack with this one, all armies!
-                $move->addAttackTransfer($fromRegion->getId(), $toRegion->getId(), $fromRegion->getArmies() - 1);
-                $fromRegion->removeArmies($fromRegion->getArmies() - 1);
+                $move->addAttackTransfer($fromRegion->getId(), $toRegion->getId(), $fromRegion->getAttackableArmies());
+                $fromRegion->removeArmies($fromRegion->getAttackableArmies());
 
             }
 
