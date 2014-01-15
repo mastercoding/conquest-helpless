@@ -77,10 +77,10 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
                             // don't we own that continent to?
                             $neighborContinent = $bot->getMap()->getContinentById($neighbor->getContinentId());
-                            if (!Helper\General::continentCaptured($bot->getMap(), $neighborContinent)) {
+                            if (!Helper\General::continentCaptured($bot->getMap(), $neighborContinent) && $neighbor->getOwner() != $bot->getMap()->getYou()) {
 
                                 // ok, this is a region with link to continent we
-                                $priorityQueue->insert($region, -1 * $neighborContinent->getBonus());
+                                $priorityQueue->insert($region, $neighborContinent->getBonus());
 
                             }
 
@@ -154,7 +154,7 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
                 // don't we own that continent to?
                 $neighborContinent = $bot->getMap()->getContinentById($neighbor->getContinentId());
-                if (!Helper\General::continentCaptured($bot->getMap(), $neighborContinent)) {
+                if (!Helper\General::continentCaptured($bot->getMap(), $neighborContinent) && $neighbor->getOwner() != $bot->getMap()->getYou()) {
 
                     $priorityQueue->insert($neighbor, -1 * $neighborContinent->getBonus());
 

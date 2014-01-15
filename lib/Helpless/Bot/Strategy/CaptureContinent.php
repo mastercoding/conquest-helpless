@@ -106,10 +106,16 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                 // at least not mine
                 if ($neighbor->getOwner() != $bot->getMap()->getYou()) {
 
+                    // needed
+                    $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($neighbor->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+
                     // same continent
-                    if ($neighbor->getContinentId() == $this->continent->getId()) {
+                    if ($neighbor->getContinentId() == $this->continent->getId() && $neededArmies > $region->getAttackableArmies()) {
+
                         $notMeNeighborCount += 1;
+
                     }
+
                 }
 
             }
@@ -252,53 +258,85 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
             // top neighbor
             $priorityQueue = new \SplPriorityQueue;
+            $attackableArmies = new \SplObjectStorage;
 
             // find wealthy neigbor
+            $totalNeighborArmies = 0;
             foreach ($region->getNeighbors() as $neighbor) {
 
                 if ($neighbor->getOwner() == $bot->getMap()->getYou()) {
 
                     // enough (needs to be >, we need 1 left on region)
                     if ($neighbor->getArmies() > $neededArmies) {
+
                         $priorityQueue->insert($neighbor, $neighbor->getArmies());
+                        $totalNeighborArmies = 0;
+                        break;
+
+                    } else {
+
+                        if ($neighbor->getAttackableArmies() > 0) {
+                            $totalNeighborArmies += $neighbor->getAttackableArmies();
+                            $attackableArmies->attach($neighbor);
+                        }
+
                     }
-
                 }
-
             }
 
-            // top
-            if (count($priorityQueue) > 0) {
+            // total neigbor armies enough, attack with multiple armies
+            if ($totalNeighborArmies >= $neededArmies) {
 
-                // get wealthiest neighbor
-                $neighbor = $priorityQueue->top();
+                // all attackable
+                foreach ($region->getNeighbors() as $neighbor) {
 
-                // other count
-                $otherOwners = 0;
-                foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
-                    if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou()) {
-                        $otherOwners++;
+                    if ($neighbor->getOwner() == $bot->getMap()->getYou()) {
+
+                        // enough (needs to be >, we need 1 left on region)
+                        if ($neighbor->getAttackableArmies() > 0) {
+
+                            $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neighbor->getAttackableArmies());
+                            $neighbor->removeArmies($neighbor->getAttackableArmies());
+
+                        }
+
                     }
                 }
+            } else {
 
-                // armies
-                if ($otherOwners == 1) {
-                    $neededArmies = $neighbor->getAttackableArmies();
-                } else {
+                // attack with just one
+                if (count($priorityQueue) > 0) {
 
-                    // now determine armies. We attack with more if we have the
-                    // overhand
-                    $factorBigger = $neighbor->getArmies() / $neededArmies;
-                    if ($factorBigger >= 3) {
-                        $neededArmies += floor(($factorBigger - 2) * $neededArmies);
+                    // get wealthiest neighbor
+                    $neighbor = $priorityQueue->top();
+
+                    // other count
+                    $otherOwners = 0;
+                    foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
+                        if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou()) {
+                            $otherOwners++;
+                        }
                     }
 
-                }
+                    // one other owner?
+                    if ($otherOwners == 1) {
+                        $neededArmies = $neighbor->getAttackableArmies();
+                    } else {
 
-                // attack with this one
-                $neighbor->removeArmies($neededArmies);
-                $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
-                break;
+                        //
+                        $factorBigger = $neighbor->getArmies() / $neededArmies;
+                        if ($factorBigger >= 3) {
+                            $neededArmies += floor(($factorBigger - 2) * $neededArmies);
+                        }
+
+                    }
+
+                    // attack with this one
+                    $neighbor->removeArmies($neededArmies);
+                    $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
+                    break;
+
+                }
 
             }
 
