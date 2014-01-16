@@ -1,12 +1,8 @@
 Strategies:
 - Maybe move the attack region logic to a seperate function, general for all
 
-Don't defend border regions with only neutral
-  - http://theaigames.com/competitions/conquest/games/52d5a2964b5ab2354acfcfc8 round 25
-
 Move armies to other region if it needs it
   - http://theaigames.com/competitions/conquest/games/52d5a2964b5ab2354acfcfc8 (round 63)
-  
 
 Don't attack other regions in same continent if we're in first 7 rounds and opponent is neir
   - http://theaigames.com/competitions/conquest/games/52d596974b5ab2354acfcf4b

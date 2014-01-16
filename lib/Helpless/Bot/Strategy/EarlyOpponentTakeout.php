@@ -43,7 +43,7 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
         foreach ($bot->getMap()->getContinents() as $continent) {
 
             // only defend small bonus continents
-            if ($continent->getBonus() > 2) {
+            if ($continent->getBonus() > 3) {
                 continue;
             }
 
@@ -55,7 +55,8 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
 
                     // opponent owner? Stupid check, but needed for multiple
                     // opponents
-                    if ($neighbor->getOwner() != $bot->getMap()->getYou() && !in_array($neighbor->getOwner()->getName(), array(AbstractOwner::NEUTRAL, AbstractOwner::UNKNOWN))) {
+                    $neighborContinent = $bot->getMap()->getContinentById($neighbor->getContinentId());
+                    if ($neighbor->getOwner() != $bot->getMap()->getYou() && $neighborContinent->getBonus() <= 3 && !in_array($neighbor->getOwner()->getName(), array(AbstractOwner::NEUTRAL, AbstractOwner::UNKNOWN))) {
 
                         // yes
                         return $region;
@@ -83,8 +84,10 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
 
             $region = $this->getRegion($bot);
             if (null !== $region) {
-                $move->addPlaceArmies($region->getId(), $amountLeft);
-                return array($move, 0);
+
+                // not everything, so another continent can still be captured
+                $move->addPlaceArmies($region->getId(), $amountLeft - 2);
+                return array($move, 2);
             }
 
         }

@@ -97,22 +97,34 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
         // loop regions to see if any of them have opponent owned neighbors, if
         // so pick this one, otherwise, pick neutral/unknown
         $priorityQueue = new \SplPriorityQueue;
-        foreach ($myRegions as $region) {
+        foreach ($this->continent->getRegions() as $region) {
 
-            // loop neighbors in same continent
-            $notMeNeighborCount = 0;
+            // mine?
+            if ($region->getOwner() == $bot->getMap()->getYou()) {
+                continue;
+            }
+
+            // needed
+            $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+
+            // not mine, needs to be captured. Is there a neighbor that can
+            // capture this?
+            $captureable = false;
+            $localPriorityQueue = new \SplPriorityQueue;
             foreach ($region->getNeighbors() as $neighbor) {
 
-                // at least not mine
-                if ($neighbor->getOwner() != $bot->getMap()->getYou()) {
-
-                    // needed
-                    $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($neighbor->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+                // neighbor mine and in same continent?
+                if ($neighbor->getOwner() == $bot->getMap()->getYou()) {
 
                     // same continent
-                    if ($neighbor->getContinentId() == $this->continent->getId() && $neededArmies > $region->getAttackableArmies()) {
+                    if ($neededArmies <= $neighbor->getAttackableArmies()) {
 
-                        $notMeNeighborCount += 1;
+                        $captureable = true;
+                        break;
+
+                    } else {
+
+                        $localPriorityQueue->insert($neighbor, $neighbor->getAttackableArmies());
 
                     }
 
@@ -121,8 +133,9 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             }
 
             // any neighbors in this continent?
-            if ($notMeNeighborCount > 0) {
-                $priorityQueue->insert($region, $notMeNeighborCount * $region->getArmies());
+            if (!$captureable && count($localPriorityQueue) > 0) {
+                $topRegion = $localPriorityQueue->top();
+                $priorityQueue->insert($topRegion, $topRegion->getAttackableArmies());
             }
 
         }
@@ -258,7 +271,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
             // top neighbor
             $priorityQueue = new \SplPriorityQueue;
-            $attackableArmies = new \SplObjectStorage;
 
             // find wealthy neigbor
             $totalNeighborArmies = 0;
@@ -267,25 +279,56 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                 if ($neighbor->getOwner() == $bot->getMap()->getYou()) {
 
                     // enough (needs to be >, we need 1 left on region)
-                    if ($neighbor->getArmies() > $neededArmies) {
+                    if ($neighbor->getAttackableArmies() >= $neededArmies) {
 
-                        $priorityQueue->insert($neighbor, $neighbor->getArmies());
-                        $totalNeighborArmies = 0;
-                        break;
+                        $priorityQueue->insert($neighbor, $neighbor->getAttackableArmies());
 
                     } else {
 
                         if ($neighbor->getAttackableArmies() > 0) {
                             $totalNeighborArmies += $neighbor->getAttackableArmies();
-                            $attackableArmies->attach($neighbor);
                         }
 
                     }
                 }
             }
 
-            // total neigbor armies enough, attack with multiple armies
-            if ($totalNeighborArmies >= $neededArmies) {
+            // can we attack with just one?
+            if (count($priorityQueue) > 0) {
+
+                // get wealthiest neighbor
+                $neighbor = $priorityQueue->top();
+
+                // other count
+                $otherOwners = 0;
+                foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
+                    if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou()) {
+                        $otherOwners++;
+                    }
+                }
+
+                // one other owner?
+                if ($otherOwners == 1) {
+                    $neededArmies = $neighbor->getAttackableArmies();
+                } else {
+
+                    // for now, dont attack with more if we have more
+                    $factorBigger = $neighbor->getAttackableArmies() / $neededArmies;
+                    if ($factorBigger > 2) {
+
+                        // add 10%
+                        $neededArmies *= 1.1;
+
+                    }
+
+                }
+
+                // attack with this one
+                $neighbor->removeArmies($neededArmies);
+                $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
+                break;
+
+            } else if ($totalNeighborArmies >= $neededArmies) {
 
                 // all attackable
                 foreach ($region->getNeighbors() as $neighbor) {
@@ -302,42 +345,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
                     }
                 }
-            } else {
-
-                // attack with just one
-                if (count($priorityQueue) > 0) {
-
-                    // get wealthiest neighbor
-                    $neighbor = $priorityQueue->top();
-
-                    // other count
-                    $otherOwners = 0;
-                    foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
-                        if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou()) {
-                            $otherOwners++;
-                        }
-                    }
-
-                    // one other owner?
-                    if ($otherOwners == 1) {
-                        $neededArmies = $neighbor->getAttackableArmies();
-                    } else {
-
-                        //
-                        $factorBigger = $neighbor->getArmies() / $neededArmies;
-                        if ($factorBigger >= 3) {
-                            $neededArmies += floor(($factorBigger - 2) * $neededArmies);
-                        }
-
-                    }
-
-                    // attack with this one
-                    $neighbor->removeArmies($neededArmies);
-                    $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
-                    break;
-
-                }
-
             }
 
         }
