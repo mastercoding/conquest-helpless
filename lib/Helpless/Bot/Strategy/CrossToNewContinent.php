@@ -136,7 +136,15 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
     /**
      * @inheritDoc
      */
-    public function attackTransfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
+    public function transfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
+    {
+        return $move;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function attack(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
 
         // find right region to cross, this null should never happen

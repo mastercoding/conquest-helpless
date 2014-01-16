@@ -129,7 +129,7 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
     /**
      * @see self::attackTransfer
      */
-    private function attacks(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
+    public function attack(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
 
         // region
@@ -170,13 +170,9 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
     /**
      * @inheritDoc
      */
-    public function attackTransfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
+    public function transfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
-
-        // transfers
-        $move = $this->attacks($bot, $move, $attackTransferCommand);
         return $move;
-
     }
 
 }

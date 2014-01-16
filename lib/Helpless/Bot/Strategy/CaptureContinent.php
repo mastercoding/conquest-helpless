@@ -188,9 +188,9 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     }
 
     /**
-     * @see self::attackTransfer
+     * @inheritDoc
      */
-    private function transfers(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
+    public function transfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
 
         // move from region with only me neighbors
@@ -302,13 +302,13 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                 // other count
                 $otherOwners = 0;
                 foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
-                    if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou()) {
+                    if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou() && !in_array($neighborsNeighbor->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL, \Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN))) {
                         $otherOwners++;
                     }
                 }
 
                 // one other owner?
-                if ($otherOwners == 1) {
+                if ($otherOwners <= 1) {
                     $neededArmies = $neighbor->getAttackableArmies();
                 } else {
 
@@ -317,7 +317,13 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                     if ($factorBigger > 2) {
 
                         // add 10%
-                        $neededArmies *= 1.1;
+                        if ($factorBigger > 4) {
+                            $neededArmies *= 1.3;
+                        } else if ($factorBigger > 3) {
+                            $neededArmies *= 1.2;
+                        } else {
+                            $neededArmies *= 1.1;
+                        }
 
                     }
 
@@ -326,7 +332,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                 // attack with this one
                 $neighbor->removeArmies($neededArmies);
                 $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
-                break;
 
             } else if ($totalNeighborArmies >= $neededArmies) {
 
@@ -353,9 +358,9 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     }
 
     /**
-     * @see self::attackTransfer
+     * @inheritDoc
      */
-    private function attacks(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
+    public function attack(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
         // attack continent regions
         $notMineNeighbors = new \SplObjectStorage;
@@ -381,20 +386,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
         // attack those
         $move = $this->attackRegions($bot, $move, $notMineNeighbors);
         return $move;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function attackTransfer(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
-    {
-
-        // transfers
-        $move = $this->transfers($bot, $move, $attackTransferCommand);
-        $move = $this->attacks($bot, $move, $attackTransferCommand);
-
-        return $move;
-
     }
 
 }
