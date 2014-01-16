@@ -200,6 +200,8 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
         // not all mine
         $notAllMineNeighboredRegions = new \SplObjectStorage;
+        
+        // implement $absoluteNotAllMineNeighboredRegions = new \SplObjectStorage;
         foreach ($this->continent->getRegions() as $region) {
 
             if ($bot->getMap()->getYou() == $region->getOwner() && !Helper\General::allYoursOrDifferentContinentNeutral($bot->getMap(), $region)) {
@@ -246,6 +248,10 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
                         $path = Helper\Path::shortestPath($bot->getMap(), $closestRegion, $region, true);
                         $move->addAttackTransfer($region->getId(), $path[1]->getId(), $region->getAttackableArmies());
+                    } else {
+                        
+                        // implement
+                        
                     }
 
                 }
