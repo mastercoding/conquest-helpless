@@ -66,6 +66,32 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     }
 
     /**
+     * Detect if we are in a "stale" situation, in which two players are placing
+     * armies on opponent regions
+     *
+     * @return bool
+     */
+    private function detectStale(\Mastercoding\Conquest\Bot\AbstractBot $bot)
+    {
+        $commands = $bot->getMoves('PlaceArmies');
+        if (count($commands) < 10) {
+            return false;
+        }
+
+        // loop
+        for ($i = 1; $i < count($commands); $i++) {
+
+            if ($commands[$i]->toString() != $commands[$i - 1]->toString()) {
+                return false;
+            }
+
+        }
+
+        return true;
+
+    }
+
+    /**
      * @inheritDoc
      */
     public function placeArmies(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\PlaceArmies $move, $amountLeft, \Mastercoding\Conquest\Command\Go\PlaceArmies $placeArmiesCommand)
@@ -161,8 +187,13 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             // top
             $topPriority = $priorityQueue->top();
 
-            // ok, all armies on this one (better implementation to come)
-            $amount = $amountLeft;
+            // stale?
+            if ($this->detectStale($bot)) {
+                $amount = $amountLeft - 4;
+            } else {
+                $amount = $amountLeft;
+            }
+
             $move->addPlaceArmies($topPriority->getId(), $amount);
 
             return array($move, $amountLeft - $amount);
