@@ -110,11 +110,27 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
             // crossable regions
             $crossableRegions = $this->crossibleRegions($bot);
-            $bestRegionToCross = $crossableRegions->top();
 
-            // place all
-            $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
-            return array($move, 0);
+            // top two
+            if (count($crossableRegions) >= 2) {
+
+                $bestRegionToCross = $crossableRegions->top();
+                $secondBestRegionToCross = $crossableRegions->top();
+
+                // place all
+                $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft - 2);
+                $move->addPlaceArmies($secondBestRegionToCross->getId(), 2);
+                return array($move, 0);
+
+            } else {
+
+                $bestRegionToCross = $crossableRegions->top();
+
+                // place all
+                $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
+                return array($move, 0);
+
+            }
 
         }
 
