@@ -265,6 +265,41 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     }
 
     /**
+     * Check if the region can attack multiple regions and count how many armies
+     * are left aftewards
+     *
+     * @return array(attackable_regions, armies_left)
+     */
+    private function regionAttackMultipleNeighbors(\Mastercoding\Conquest\Bot\AbstractBot $bot, $region)
+    {
+
+        $avail = $region->getAttackableArmies();
+
+        $attackable = 0;
+        foreach ($region->getNeighbors() as $neighbor) {
+            if ($neighbor->getOwner() != $bot->getMap()->getYou() && !in_array($neighbor->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN))) {
+
+                // wealthy enough to attack?
+                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($neighbor->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+                if ($neededArmies <= $avail) {
+
+                    $attackable++;
+                    $avail -= $neededArmies;
+
+                }
+
+            }
+        }
+
+        // attackable
+        if ($attackable > 0) {
+            return array($attackable, $avail);
+        }
+        return array(0, null);
+
+    }
+
+    /**
      * Attack the regions in the most efficient way (or some if all is not
      * possible)
      */
@@ -306,33 +341,17 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                 // get wealthiest neighbor
                 $neighbor = $priorityQueue->top();
 
-                // other count
-                $otherOwners = 0;
-                foreach ($neighbor->getNeighbors() as $neighborsNeighbor) {
-                    if ($neighborsNeighbor->getOwner() != $bot->getMap()->getYou() && !in_array($neighborsNeighbor->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL, \Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN))) {
-                        $otherOwners++;
-                    }
-                }
+                // other owners > 1? check if it can attack multiple
+                $multiple = $this->regionAttackMultipleNeighbors($bot, $neighbor);
 
                 // one other owner?
-                if ($otherOwners <= 1) {
+                if ($multiple[0] <= 1) {
                     $neededArmies = $neighbor->getAttackableArmies();
                 } else {
 
-                    // for now, dont attack with more if we have more
-                    $factorBigger = $neighbor->getAttackableArmies() / $neededArmies;
-                    if ($factorBigger > 2) {
-
-                        // add 10%
-                        if ($factorBigger > 4) {
-                            $neededArmies *= 1.3;
-                        } else if ($factorBigger > 3) {
-                            $neededArmies *= 1.2;
-                        } else {
-                            $neededArmies *= 1.1;
-                        }
-
-                    }
+                    // left
+                    $extra = floor($multiple[1] / $multiple[0]);
+                    $neededArmies += $extra;
 
                 }
 
