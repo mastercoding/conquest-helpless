@@ -23,6 +23,21 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     private $continent;
 
     /**
+     * Get additional armies percentage
+     *
+     * @param \Mastercoding\Conquest\Bot\AbstractBot $bot
+     * @return int
+     */
+    private function getAdditionalArmiesPercentage(\Mastercoding\Conquest\Bot\AbstractBot $bot)
+    {
+        #if ($bot->getMap()->getRound() <= 10) {
+        #    return 20;
+        #}
+
+        return self::ADDITIONAL_ARMIES_PERCENTAGE;
+    }
+
+    /**
      * @inheritDoc
      */
     public function isDone(\Mastercoding\Conquest\Bot\AbstractBot $bot)
@@ -69,7 +84,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                     // not own region or neutral
                     if ($neighbor->getOwner() != $bot->getMap()->getYou() && $neighbor->getOwner()->getName() != \Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL) {
 
-                        $neededArmies = Helper\Amount::amountToDefend($neighbor->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+                        $neededArmies = Helper\Amount::amountToDefend($neighbor->getArmies(), $this->getAdditionalArmiesPercentage($bot));
                         if ($neededArmies > $myArmies) {
 
                             //
@@ -105,7 +120,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             }
 
             // needed
-            $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+            $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), $this->getAdditionalArmiesPercentage($bot));
 
             // not mine, needs to be captured. Is there a neighbor that can
             // capture this?
@@ -280,7 +295,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             if ($neighbor->getOwner() != $bot->getMap()->getYou() && !in_array($neighbor->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN))) {
 
                 // wealthy enough to attack?
-                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($neighbor->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($neighbor->getArmies(), $this->getAdditionalArmiesPercentage($bot));
                 if ($neededArmies <= $avail) {
 
                     $attackable++;
@@ -309,7 +324,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
         foreach ($regions as $region) {
 
             // wealthy enough to attack?
-            $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+            $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), $this->getAdditionalArmiesPercentage($bot));
 
             // top neighbor
             $priorityQueue = new \SplPriorityQueue;
