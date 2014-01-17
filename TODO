@@ -3,9 +3,6 @@ Strategies:
 
 Move armies to other region if it needs it
   - http://theaigames.com/competitions/conquest/games/52d5a2964b5ab2354acfcfc8 (round 63)
-
-Don't attack other regions in same continent if we're in first 7 rounds and opponent is neir
-  - http://theaigames.com/competitions/conquest/games/52d596974b5ab2354acfcf4b
   
 - Defend border region, taking into account opponent armies to be placed that round
 	- http://theaigames.com/competitions/conquest/games/52d3d0004b5ab2354acfbd9c (round 4/5)

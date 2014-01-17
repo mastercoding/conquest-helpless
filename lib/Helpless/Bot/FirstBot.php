@@ -46,12 +46,15 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $regions = count($continent->getRegions());
             $myRegions = count(\Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($this->getMap(), $continent, $this->getMap()->getYou()));
 
+            // based on bonus
+            $bonus = $continent->getBonus();
+
             // to capture
-            $priorityQueue->insert($captureStrategy, ($regions - $myRegions));
+            $priorityQueue->insert($captureStrategy, (($regions - $myRegions) / $bonus));
 
         }
 
-        // set priorities
+        // set priorities, reversed order
         $i = 1;
         foreach ($priorityQueue as $captureStrategy) {
 
