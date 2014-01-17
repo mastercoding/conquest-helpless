@@ -86,8 +86,8 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
             if (null !== $region) {
 
                 // not everything, so another continent can still be captured
-                $move->addPlaceArmies($region->getId(), $amountLeft - 2);
-                return array($move, 2);
+                $move->addPlaceArmies($region->getId(), $amountLeft);
+                return array($move, 0);
             }
 
         }
