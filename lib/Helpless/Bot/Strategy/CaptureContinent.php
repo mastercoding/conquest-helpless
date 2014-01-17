@@ -268,7 +268,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
      * Attack the regions in the most efficient way (or some if all is not
      * possible)
      */
-    private function attackRegions(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \SplObjectStorage $regions)
+    private function attackRegions(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \SplPriorityQueue $regions)
     {
 
         foreach ($regions as $region) {
@@ -370,7 +370,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     public function attack(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\AttackTransfer $move, \Mastercoding\Conquest\Command\Go\AttackTransfer $attackTransferCommand)
     {
         // attack continent regions
-        $notMineNeighbors = new \SplObjectStorage;
+        $notMineNeighbors = new \SplPriorityQueue;
         foreach ($this->continent->getRegions() as $region) {
 
             // mine?
@@ -381,7 +381,14 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
                     // add
                     if ($neighbor->getOwner() != $bot->getMap()->getYou() && $neighbor->getContinentId() == $this->continent->getId()) {
-                        $notMineNeighbors->attach($neighbor);
+
+                        $priority = 0;
+                        if (!in_array($neighbor->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL, \Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN))) {
+                            $priority = 1;
+                        }
+
+                        $notMineNeighbors->insert($neighbor, $priority);
+
                     }
 
                 }
