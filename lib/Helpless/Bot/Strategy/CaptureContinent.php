@@ -13,7 +13,14 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
      *
      * @var int
      */
-    const ADDITIONAL_ARMIES_PERCENTAGE = 30;
+    const ADDITIONAL_ARMIES_PERCENTAGE = 20;
+
+    /**
+     * How many times the same move should be defined as stale?
+     *
+     * @var int
+     */
+    const STALE_COUNT = 3;
 
     /**
      * The continent to caputre
@@ -73,15 +80,16 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
      */
     private function detectStale(\Mastercoding\Conquest\Bot\AbstractBot $bot)
     {
+
         $commands = $bot->getMoves('PlaceArmies');
-        if (count($commands) < 10) {
+        if (count($commands) < self::STALE_COUNT) {
             return false;
         }
 
         // loop
-        for ($i = 1; $i < count($commands); $i++) {
+        for ($j = 0, $i = count($commands) - 2; $j < self::STALE_COUNT - 1; $j++, $i--) {
 
-            if ($commands[$i]->toString() != $commands[$i - 1]->toString()) {
+            if ($commands[$i]->toString() != $commands[$i + 1]->toString()) {
                 return false;
             }
 
@@ -96,6 +104,25 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
      */
     public function placeArmies(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\PlaceArmies $move, $amountLeft, \Mastercoding\Conquest\Command\Go\PlaceArmies $placeArmiesCommand)
     {
+
+        // stale
+        if ($this->detectStale($bot)) {
+
+            // continent
+            $moves = $bot->getMoves('PlaceArmies');
+            $lastMove = array_pop($moves);
+
+            // loop
+            foreach ($lastMove->getPlaceArmies() as $regionId => $armies) {
+
+                $region = $bot->getMap()->getRegionById($regionId);
+                if ($region->getContinentId() == $this->continent->getId()) {
+                    return array($move, $amountLeft);
+                }
+
+            }
+
+        }
 
         // captured, defend borders
         if (Helper\General::continentCaptured($bot->getMap(), $this->continent)) {
@@ -119,7 +146,9 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
                             $amountLeft -= $amountToPlace;
 
                             // place armies
-                            $move->addPlaceArmies($region->getId(), $amountToPlace);
+                            if ($amountToPlace != 0) {
+                                $move->addPlaceArmies($region->getId(), $amountToPlace);
+                            }
 
                         }
 
@@ -131,9 +160,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
             return array($move, $amountLeft);
         }
-
-        // get regions owned by me
-        $myRegions = \Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($bot->getMap(), $this->continent, $bot->getMap()->getYou());
 
         // loop regions to see if any of them have opponent owned neighbors, if
         // so pick this one, otherwise, pick neutral/unknown
@@ -155,7 +181,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             foreach ($region->getNeighbors() as $neighbor) {
 
                 // neighbor mine and in same continent?
-                if ($neighbor->getOwner() == $bot->getMap()->getYou()) {
+                if ($neighbor->getOwner() == $bot->getMap()->getYou() && $neighbor->getContinentId() == $this->continent->getId()) {
 
                     // same continent
                     if ($neededArmies <= $neighbor->getAttackableArmies()) {
@@ -188,14 +214,13 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             $topPriority = $priorityQueue->top();
 
             // stale?
-            if ($this->detectStale($bot)) {
-                $amount = $amountLeft - 4;
-            } else {
-                $amount = $amountLeft;
+            $amount = $amountLeft;
+
+            // 0?
+            if ($amount != 0) {
+                echo 'this';
+                $move->addPlaceArmies($topPriority->getId(), $amount);
             }
-
-            $move->addPlaceArmies($topPriority->getId(), $amount);
-
             return array($move, $amountLeft - $amount);
 
         }

@@ -50,7 +50,7 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $bonus = $continent->getBonus();
 
             // to capture
-            $priorityQueue->insert($captureStrategy, (($regions - $myRegions) / $bonus));
+            $priorityQueue->insert($captureStrategy, (($regions - $myRegions)));
 
         }
 
@@ -105,8 +105,8 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $capture->setPriority(self::CAPTURE_CONTINENT_PRIORITY_OFFSET + $i);
             $this->addStrategy($capture);
 
-            // testing with africa and south america
-            if ($continents[$i]->getId() == 4) {
+            // europe maybe?
+            if ($continents[$i]->getId() == 3) {
                 $capture->setPriority(20);
             }
 
