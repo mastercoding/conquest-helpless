@@ -86,8 +86,8 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
             if (null !== $region) {
 
                 // not everything, so another continent can still be captured
-                $move->addPlaceArmies($region->getId(), $amountLeft);
-                return array($move, 0);
+                $move->addPlaceArmies($region->getId(), $amountLeft - 2);
+                return array($move, 2);
             }
 
         }
@@ -114,10 +114,10 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
     {
 
         // wealthy enough to attack?
-        $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($regionTo->getArmies(), self::ADDITIONAL_ARMIES_PERCENTAGE);
+        $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($regionTo->getArmies() + self::OPPONENT_ARMIES_PER_ROUND, self::ADDITIONAL_ARMIES_PERCENTAGE);
 
         //  attack (defend is better)
-        if ($regionFrom->getArmies() >= ($neededArmies + self::OPPONENT_ARMIES_PER_ROUND)) {
+        if ($regionFrom->getArmies() >= $neededArmies) {
             $move->addAttackTransfer($regionFrom->getId(), $regionTo->getId(), $regionFrom->getAttackableArmies());
             $regionFrom->removeArmies($regionFrom->getAttackableArmies());
         }
@@ -158,6 +158,7 @@ class EarlyOpponentTakeout extends \Mastercoding\Conquest\Bot\Strategy\AbstractS
                 }
 
                 // make move
+                //$bot->addBlockAttackRegion($regionFrom);
                 $move = $this->attackRegion($bot, $move, $regionFrom, $regionTo);
 
             }

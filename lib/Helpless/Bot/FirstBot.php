@@ -18,11 +18,21 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
     private $captureContinentStrategies;
 
     /**
+     * Block regions from attacking
+     *
+     * @var \SplObjectStorage
+     */
+    private $blockRegionsForAttack;
+
+    /**
      * Setup listeners
      */
     public function __construct($map, $eventDispatcher)
     {
         parent::__construct($map, $eventDispatcher);
+
+        // storage
+        $this->blockRegionsForAttack = new \SplObjectStorage;
 
         // setup listeners
         $eventDispatcher->addListener(\Mastercoding\Conquest\Event::SETUP_MAP_COMPLETE, array($this, 'setupMapComplete'));
@@ -31,10 +41,35 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
     }
 
     /**
+     * Add region to blocked attack region
+     *
+     * @param \Mastercoding\Conquest\Object\Region $region
+     */
+    public function addBlockAttackRegion(\Mastercoding\Conquest\Object\Region $region)
+    {
+        $this->blockRegionsForAttack->attach($region);
+        return $this;
+    }
+
+    /**
+     * Is the region blocked
+     *
+     * @param \Mastercoding\Conquest\Object\Region $region
+     * @return bool
+     */
+    public function isRegionBlocked(\Mastercoding\Conquest\Object\Region $region)
+    {
+        return $this->blockRegionsForAttack->contains($region);
+    }
+
+    /**
      * After update map, this is called
      */
     public function updateMap()
     {
+
+        // reset
+        $this->blockRegionsForAttack = new \SplObjectStorage;
 
         // re-order strategies
         $priorityQueue = new \SplPriorityQueue;

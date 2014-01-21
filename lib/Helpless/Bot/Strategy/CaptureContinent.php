@@ -218,7 +218,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
             // 0?
             if ($amount != 0) {
-                echo 'this';
                 $move->addPlaceArmies($topPriority->getId(), $amount);
             }
             return array($move, $amountLeft - $amount);
@@ -389,7 +388,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             $totalNeighborArmies = 0;
             foreach ($region->getNeighbors() as $neighbor) {
 
-                if ($neighbor->getOwner() == $bot->getMap()->getYou()) {
+                if ($neighbor->getOwner() == $bot->getMap()->getYou() && !$bot->isRegionBlocked($neighbor)) {
 
                     // enough (needs to be >, we need 1 left on region)
                     if ($neighbor->getAttackableArmies() >= $neededArmies) {

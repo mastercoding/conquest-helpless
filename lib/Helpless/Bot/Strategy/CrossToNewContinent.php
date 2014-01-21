@@ -106,33 +106,38 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
     {
 
         // all continents
-        if ($this->onlyCapturedContinents($bot)) {
+        #   if ($this->onlyCapturedContinents($bot)) {
 
-            // crossable regions
-            $crossableRegions = $this->crossibleRegions($bot);
+        // crossable regions
+        $crossableRegions = $this->crossibleRegions($bot);
 
-            // top two
-            if (count($crossableRegions) >= 2) {
+        // top two
+        if (count($crossableRegions) >= 2) {
 
-                $bestRegionToCross = $crossableRegions->top();
-                $secondBestRegionToCross = $crossableRegions->top();
+            $bestRegionToCross = $crossableRegions->top();
+            $secondBestRegionToCross = $crossableRegions->top();
 
-                // place all
-                $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft - 2);
-                $move->addPlaceArmies($secondBestRegionToCross->getId(), 2);
-                return array($move, 0);
+            // place all
+            $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft - 2);
+            $move->addPlaceArmies($secondBestRegionToCross->getId(), 2);
+            return array($move, 0);
 
-            } else {
+        } else {
+
+            // cross
+            if (count($crossableRegions) > 0) {
 
                 $bestRegionToCross = $crossableRegions->top();
 
                 // place all
                 $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
-                return array($move, 0);
 
             }
+            return array($move, 0);
 
         }
+
+        #        }
 
         // nothing
         return array($move, $amountLeft);
