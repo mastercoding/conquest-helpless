@@ -140,11 +140,6 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $capture->setPriority(self::CAPTURE_CONTINENT_PRIORITY_OFFSET + $i);
             $this->addStrategy($capture);
 
-            // europe maybe?
-            if ($continents[$i]->getId() == 3) {
-                $capture->setPriority(20);
-            }
-
             // store for re-ordering
             $this->captureContinentStrategies->attach($capture);
 

@@ -244,6 +244,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             if (null !== $this->continent->getRegionById($regionId)) {
                 $move->addRegionId($regionId);
                 $amountLeft--;
+                break;
             }
 
             if ($amountLeft == 0) {

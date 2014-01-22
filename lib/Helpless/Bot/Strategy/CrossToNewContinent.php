@@ -131,9 +131,9 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
 
                 // place all
                 $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
+                return array($move, 0);
 
             }
-            return array($move, 0);
 
         }
 
