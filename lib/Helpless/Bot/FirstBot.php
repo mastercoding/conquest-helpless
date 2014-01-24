@@ -80,12 +80,20 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             // get region count and captured region count
             $regions = count($continent->getRegions());
             $myRegions = count(\Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($this->getMap(), $continent, $this->getMap()->getYou()));
+            $opponentRegions = 0;
+            foreach ($continent->getRegions() as $region) {
+
+                if ($region->getOwner() != $this->getMap()->getYou() && !in_array($region->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN, \Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL))) {
+                    $opponentRegions++;
+                }
+
+            }
 
             // based on bonus
             $bonus = $continent->getBonus();
 
             // to capture
-            $priorityQueue->insert($captureStrategy, (($regions - $myRegions)));
+            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + $opponentRegions)));
 
         }
 
@@ -151,9 +159,10 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
         $this->addStrategy($crossToNew);
 
         // early opponent takeout
-        $earlyOpponentTakeout = new \Helpless\Bot\Strategy\EarlyOpponentTakeout;
-        $earlyOpponentTakeout->setPriority(100);
-        $this->addStrategy($earlyOpponentTakeout);
+        //$earlyOpponentTakeout = new
+        // \Helpless\Bot\Strategy\EarlyOpponentTakeout;
+        //$earlyOpponentTakeout->setPriority(100);
+        //$this->addStrategy($earlyOpponentTakeout);
 
         // pick armies random, we should never loose armies due to strategies not
         // needing them
