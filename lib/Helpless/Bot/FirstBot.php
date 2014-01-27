@@ -93,7 +93,7 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $bonus = $continent->getBonus();
 
             // to capture
-            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + $opponentRegions)));
+            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + $opponentRegions * 5)));
 
         }
 
@@ -153,16 +153,15 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
 
         }
 
-        // to new continent
+        // to new continent - before 3 largest continents
         $crossToNew = new \Helpless\Bot\Strategy\CrossToNewContinent;
-        $crossToNew->setPriority(4);
+        $crossToNew->setPriority(self::CAPTURE_CONTINENT_PRIORITY_OFFSET + 2);
         $this->addStrategy($crossToNew);
 
         // early opponent takeout
-        //$earlyOpponentTakeout = new
-        // \Helpless\Bot\Strategy\EarlyOpponentTakeout;
-        //$earlyOpponentTakeout->setPriority(100);
-        //$this->addStrategy($earlyOpponentTakeout);
+        $earlyOpponentTakeout = new \Helpless\Bot\Strategy\EarlyOpponentTakeout;
+        $earlyOpponentTakeout->setPriority(100);
+        $this->addStrategy($earlyOpponentTakeout);
 
         // pick armies random, we should never loose armies due to strategies not
         // needing them

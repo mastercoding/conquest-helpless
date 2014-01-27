@@ -4,8 +4,15 @@ namespace Helpless\Bot\Strategy;
 
 use \Mastercoding\Conquest\Bot\Helper;
 
-class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrategy implements \Mastercoding\Conquest\Bot\Strategy\RegionPicker\RegionPickerInterface, \Mastercoding\Conquest\Bot\Strategy\AttackTransfer\AttackTransferInterface, \Mastercoding\Conquest\Bot\Strategy\ArmyPlacement\ArmyPlacementInterface
+class CrossToNewContinent extends AbstractStrategy implements \Mastercoding\Conquest\Bot\Strategy\RegionPicker\RegionPickerInterface, \Mastercoding\Conquest\Bot\Strategy\AttackTransfer\AttackTransferInterface, \Mastercoding\Conquest\Bot\Strategy\ArmyPlacement\ArmyPlacementInterface
 {
+
+    /**
+     * How many times the same move should be defined as stale?
+     *
+     * @var int
+     */
+    const STALE_COUNT = 5;
 
     /**
      * Need x percent additional armies then the theoretical amount to start an
@@ -62,12 +69,34 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
             // grab continent
             $continent = $bot->getMap()->getContinentById($i);
 
-            // do we own the continent
-            if (Helper\General::continentCaptured($bot->getMap(), $continent)) {
+            // stale
+            if ($this->detectStale($bot)) {
 
-                // check border regions
-                $borderRegions = Helper\General::borderRegionsInContinent($bot->getMap(), $continent);
-                foreach ($borderRegions as $region) {
+                // continent
+                $moves = $bot->getMoves('PlaceArmies');
+                $lastMove = array_pop($moves);
+
+                // loop
+                foreach ($lastMove->getPlaceArmies() as $regionId => $armies) {
+
+                    $region = $bot->getMap()->getRegionById($regionId);
+                    if ($region->getContinentId() == $continent->getId()) {
+                        continue 2;
+                    }
+
+                }
+
+            }
+
+            // do we own the continent
+            #if (Helper\General::continentCaptured($bot->getMap(), $continent)) {
+
+            // check border regions
+            $borderRegions = Helper\General::borderRegionsInContinent($bot->getMap(), $continent);
+            foreach ($borderRegions as $region) {
+
+                // mine
+                if ($region->getOwner() == $bot->getMap()->getYou()) {
 
                     // loop neighbors
                     foreach ($region->getNeighbors() as $neighbor) {
@@ -75,9 +104,10 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
                         // neighbor
                         if ($neighbor->getContinentId() != $continent->getId()) {
 
-                            // don't we own that continent to?
+                            // don't we have armies in that continent to?
                             $neighborContinent = $bot->getMap()->getContinentById($neighbor->getContinentId());
-                            if (!Helper\General::continentCaptured($bot->getMap(), $neighborContinent) && $neighbor->getOwner() != $bot->getMap()->getYou()) {
+                            $myRegions = \Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($bot->getMap(), $neighborContinent, $bot->getMap()->getYou());
+                            if (count($myRegions) == 0) {
 
                                 // ok, this is a region with link to continent we
                                 $priorityQueue->insert($region, $neighborContinent->getBonus());
@@ -89,8 +119,9 @@ class CrossToNewContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractSt
                     }
 
                 }
-
             }
+
+            #}
 
         }
 

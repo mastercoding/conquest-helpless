@@ -4,7 +4,7 @@ namespace Helpless\Bot\Strategy;
 
 use \Mastercoding\Conquest\Bot\Helper;
 
-class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrategy implements \Mastercoding\Conquest\Bot\Strategy\RegionPicker\RegionPickerInterface, \Mastercoding\Conquest\Bot\Strategy\AttackTransfer\AttackTransferInterface, \Mastercoding\Conquest\Bot\Strategy\ArmyPlacement\ArmyPlacementInterface
+class CaptureContinent extends AbstractStrategy implements \Mastercoding\Conquest\Bot\Strategy\RegionPicker\RegionPickerInterface, \Mastercoding\Conquest\Bot\Strategy\AttackTransfer\AttackTransferInterface, \Mastercoding\Conquest\Bot\Strategy\ArmyPlacement\ArmyPlacementInterface
 {
 
     /**
@@ -20,7 +20,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
      *
      * @var int
      */
-    const STALE_COUNT = 3;
+    const STALE_COUNT = 5;
 
     /**
      * The continent to caputre
@@ -73,33 +73,6 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
     }
 
     /**
-     * Detect if we are in a "stale" situation, in which two players are placing
-     * armies on opponent regions
-     *
-     * @return bool
-     */
-    private function detectStale(\Mastercoding\Conquest\Bot\AbstractBot $bot)
-    {
-
-        $commands = $bot->getMoves('PlaceArmies');
-        if (count($commands) < self::STALE_COUNT) {
-            return false;
-        }
-
-        // loop
-        for ($j = 0, $i = count($commands) - 2; $j < self::STALE_COUNT - 1; $j++, $i--) {
-
-            if ($commands[$i]->toString() != $commands[$i + 1]->toString()) {
-                return false;
-            }
-
-        }
-
-        return true;
-
-    }
-
-    /**
      * @inheritDoc
      */
     public function placeArmies(\Mastercoding\Conquest\Bot\AbstractBot $bot, \Mastercoding\Conquest\Move\PlaceArmies $move, $amountLeft, \Mastercoding\Conquest\Command\Go\PlaceArmies $placeArmiesCommand)
@@ -107,14 +80,14 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
 
         // stale
         if ($this->detectStale($bot)) {
-
+            
             // continent
             $moves = $bot->getMoves('PlaceArmies');
             $lastMove = array_pop($moves);
 
             // loop
             foreach ($lastMove->getPlaceArmies() as $regionId => $armies) {
-
+                
                 $region = $bot->getMap()->getRegionById($regionId);
                 if ($region->getContinentId() == $this->continent->getId()) {
                     return array($move, $amountLeft);
@@ -244,7 +217,7 @@ class CaptureContinent extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrat
             if (null !== $this->continent->getRegionById($regionId)) {
                 $move->addRegionId($regionId);
                 $amountLeft--;
-                break;
+                //break;
             }
 
             if ($amountLeft == 0) {
