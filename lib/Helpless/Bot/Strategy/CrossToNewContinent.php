@@ -89,39 +89,40 @@ class CrossToNewContinent extends AbstractStrategy implements \Mastercoding\Conq
             }
 
             // do we own the continent
-            #if (Helper\General::continentCaptured($bot->getMap(), $continent)) {
+            if (Helper\General::continentCaptured($bot->getMap(), $continent)) {
 
-            // check border regions
-            $borderRegions = Helper\General::borderRegionsInContinent($bot->getMap(), $continent);
-            foreach ($borderRegions as $region) {
+                // check border regions
+                $borderRegions = Helper\General::borderRegionsInContinent($bot->getMap(), $continent);
+                foreach ($borderRegions as $region) {
 
-                // mine
-                if ($region->getOwner() == $bot->getMap()->getYou()) {
+                    // mine
+                    if ($region->getOwner() == $bot->getMap()->getYou()) {
 
-                    // loop neighbors
-                    foreach ($region->getNeighbors() as $neighbor) {
+                        // loop neighbors
+                        foreach ($region->getNeighbors() as $neighbor) {
 
-                        // neighbor
-                        if ($neighbor->getContinentId() != $continent->getId()) {
+                            // neighbor
+                            if ($neighbor->getContinentId() != $continent->getId()) {
 
-                            // don't we have armies in that continent to?
-                            $neighborContinent = $bot->getMap()->getContinentById($neighbor->getContinentId());
-                            $myRegions = \Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($bot->getMap(), $neighborContinent, $bot->getMap()->getYou());
-                            if (count($myRegions) == 0) {
+                                // don't we have armies in that continent to?
+                                $neighborContinent = $bot->getMap()->getContinentById($neighbor->getContinentId());
+                                $myRegions = \Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($bot->getMap(), $neighborContinent, $bot->getMap()->getYou());
+                                if (count($myRegions) == 0) {
 
-                                // ok, this is a region with link to continent we
-                                $priorityQueue->insert($region, $neighborContinent->getBonus());
+                                    // ok, this is a region with link to
+                                    // continent we
+                                    $priorityQueue->insert($region, $neighborContinent->getBonus());
+
+                                }
 
                             }
 
                         }
 
                     }
-
                 }
-            }
 
-            #}
+            }
 
         }
 
@@ -137,38 +138,38 @@ class CrossToNewContinent extends AbstractStrategy implements \Mastercoding\Conq
     {
 
         // all continents
-        #   if ($this->onlyCapturedContinents($bot)) {
+        if ($this->onlyCapturedContinents($bot)) {
 
-        // crossable regions
-        $crossableRegions = $this->crossibleRegions($bot);
+            // crossable regions
+            $crossableRegions = $this->crossibleRegions($bot);
 
-        // top two
-        if (count($crossableRegions) >= 2) {
-
-            $bestRegionToCross = $crossableRegions->top();
-            $secondBestRegionToCross = $crossableRegions->top();
-
-            // place all
-            $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft - 2);
-            $move->addPlaceArmies($secondBestRegionToCross->getId(), 2);
-            return array($move, 0);
-
-        } else {
-
-            // cross
-            if (count($crossableRegions) > 0) {
+            // top two
+            if (count($crossableRegions) >= 2) {
 
                 $bestRegionToCross = $crossableRegions->top();
+                $secondBestRegionToCross = $crossableRegions->top();
 
                 // place all
-                $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
+                $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft - 2);
+                $move->addPlaceArmies($secondBestRegionToCross->getId(), 2);
                 return array($move, 0);
+
+            } else {
+
+                // cross
+                if (count($crossableRegions) > 0) {
+
+                    $bestRegionToCross = $crossableRegions->top();
+
+                    // place all
+                    $move->addPlaceArmies($bestRegionToCross->getId(), $amountLeft);
+                    return array($move, 0);
+
+                }
 
             }
 
         }
-
-        #        }
 
         // nothing
         return array($move, $amountLeft);

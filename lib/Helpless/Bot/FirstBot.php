@@ -80,11 +80,11 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             // get region count and captured region count
             $regions = count($continent->getRegions());
             $myRegions = count(\Mastercoding\Conquest\Bot\Helper\General::regionsInContinentByOwner($this->getMap(), $continent, $this->getMap()->getYou()));
-            $opponentRegions = 0;
+            $opponentRegions = new \SplObjectStorage;
             foreach ($continent->getRegions() as $region) {
 
                 if ($region->getOwner() != $this->getMap()->getYou() && !in_array($region->getOwner()->getName(), array(\Mastercoding\Conquest\Object\Owner\AbstractOwner::UNKNOWN, \Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL))) {
-                    $opponentRegions++;
+                    $opponentRegions->attach($region);
                 }
 
             }
@@ -93,7 +93,7 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $bonus = $continent->getBonus();
 
             // to capture
-            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + $opponentRegions * 5)));
+            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + count($opponentRegions) * 2)));
 
         }
 
@@ -152,6 +152,11 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $this->captureContinentStrategies->attach($capture);
 
         }
+
+        // breakup
+        $breakupContinent = new \Helpless\Bot\Strategy\BreakupContinent;
+        $breakupContinent->setPriority(99);
+        $this->addStrategy($breakupContinent);
 
         // to new continent - before 3 largest continents
         $crossToNew = new \Helpless\Bot\Strategy\CrossToNewContinent;
