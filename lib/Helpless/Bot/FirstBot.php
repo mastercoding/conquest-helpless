@@ -93,7 +93,7 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
             $bonus = $continent->getBonus();
 
             // to capture
-            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + count($opponentRegions) * 2)));
+            $priorityQueue->insert($captureStrategy, (($regions - $myRegions + count($opponentRegions))));
 
         }
 
