@@ -80,14 +80,14 @@ class CaptureContinent extends AbstractStrategy implements \Mastercoding\Conques
 
         // stale
         if ($this->detectStale($bot)) {
-            
+
             // continent
             $moves = $bot->getMoves('PlaceArmies');
             $lastMove = array_pop($moves);
 
             // loop
             foreach ($lastMove->getPlaceArmies() as $regionId => $armies) {
-                
+
                 $region = $bot->getMap()->getRegionById($regionId);
                 if ($region->getContinentId() == $this->continent->getId()) {
                     return array($move, $amountLeft);
@@ -110,7 +110,7 @@ class CaptureContinent extends AbstractStrategy implements \Mastercoding\Conques
                     // not own region or neutral
                     if ($neighbor->getOwner() != $bot->getMap()->getYou() && $neighbor->getOwner()->getName() != \Mastercoding\Conquest\Object\Owner\AbstractOwner::NEUTRAL) {
 
-                        $neededArmies = Helper\Amount::amountToDefend($neighbor->getArmies(), $this->getAdditionalArmiesPercentage($bot));
+                        $neededArmies = Helper\Amount::amountToDefend($neighbor->getArmies() + 5, $this->getAdditionalArmiesPercentage($bot));
                         if ($neededArmies > $myArmies) {
 
                             //
@@ -193,6 +193,7 @@ class CaptureContinent extends AbstractStrategy implements \Mastercoding\Conques
             if ($amount != 0) {
                 $move->addPlaceArmies($topPriority->getId(), $amount);
             }
+
             return array($move, $amountLeft - $amount);
 
         }

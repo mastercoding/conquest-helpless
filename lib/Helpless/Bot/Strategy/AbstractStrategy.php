@@ -4,7 +4,7 @@ namespace Helpless\Bot\Strategy;
 
 abstract class AbstractStrategy extends \Mastercoding\Conquest\Bot\Strategy\AbstractStrategy
 {
-    
+
     /**
      * Detect if we are in a "stale" situation, in which two players are placing
      * armies on opponent regions

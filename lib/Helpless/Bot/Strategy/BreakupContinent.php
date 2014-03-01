@@ -23,6 +23,15 @@ class BreakupContinent extends AbstractStrategy implements \Mastercoding\Conques
     const STALE_COUNT = 5;
 
     /**
+     * Opponent starts with 5 armies per round and is not likely
+     * to capture a full continent within the first 7 moves (if this strategy is
+     * in place)
+     *
+     * @var int
+     */
+    const OPPONENT_ARMIES_PER_ROUND = 5;
+
+    /**
      * Get additional armies percentage
      *
      * @param \Mastercoding\Conquest\Bot\AbstractBot $bot
@@ -54,7 +63,7 @@ class BreakupContinent extends AbstractStrategy implements \Mastercoding\Conques
                     return null;
                 }
             }
-            
+
             // queue
             $priorityQueue = new \SplPriorityQueue;
 
@@ -129,12 +138,30 @@ class BreakupContinent extends AbstractStrategy implements \Mastercoding\Conques
             $bestInsertion = $this->getBestInsertionForRegion($bot, $continent);
             if (null !== $bestInsertion) {
 
+                // stale
+                if ($this->detectStale($bot)) {
+
+                    // continent
+                    $moves = $bot->getMoves('PlaceArmies');
+                    $lastMove = array_pop($moves);
+
+                    // loop
+                    foreach ($lastMove->getPlaceArmies() as $regionId => $armies) {
+
+                        if ($regionId == $bestInsertion[1]->getId()) {
+                            continue 2;
+                        }
+
+                    }
+
+                }
+                
                 // ok
                 $region = $bestInsertion[0];
                 $neighbor = $bestInsertion[1];
 
                 // needed
-                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), $this->getAdditionalArmiesPercentage($bot));
+                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies() + self::OPPONENT_ARMIES_PER_ROUND, $this->getAdditionalArmiesPercentage($bot));
                 if ($neededArmies > $neighbor->getAttackableArmies()) {
 
                     $additional = min($neededArmies - $neighbor->getAttackableArmies(), $amountLeft);
@@ -196,11 +223,13 @@ class BreakupContinent extends AbstractStrategy implements \Mastercoding\Conques
                 $neighbor = $bestInsertion[1];
 
                 // needed
-                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies(), $this->getAdditionalArmiesPercentage($bot));
+                $neededArmies = \Mastercoding\Conquest\Bot\Helper\Amount::amountToAttack($region->getArmies() + self::OPPONENT_ARMIES_PER_ROUND, $this->getAdditionalArmiesPercentage($bot));
                 if ($neededArmies <= $neighbor->getAttackableArmies()) {
 
                     $move->addAttackTransfer($neighbor->getId(), $region->getId(), $neededArmies);
 
+                } else {
+                    $bot->addBlockAttackRegion($region);
                 }
 
             }

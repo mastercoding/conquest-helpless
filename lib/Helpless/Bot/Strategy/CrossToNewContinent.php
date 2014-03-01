@@ -139,7 +139,7 @@ class CrossToNewContinent extends AbstractStrategy implements \Mastercoding\Conq
 
         // all continents
         if ($this->onlyCapturedContinents($bot)) {
-
+            
             // crossable regions
             $crossableRegions = $this->crossibleRegions($bot);
 
