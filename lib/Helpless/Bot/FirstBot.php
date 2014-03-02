@@ -18,6 +18,11 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
     private $captureContinentStrategies;
 
     /**
+     * Brekaup continent strategy
+     */
+    private $breakupContinent;
+
+    /**
      * Block regions from attacking
      *
      * @var \SplObjectStorage
@@ -97,6 +102,14 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
 
         }
 
+        // breakup continent becomes imoprtant if we have more then 3 continents
+        // or > 7 armies to place
+        if ($this->getMap()->getStartingArmies() > 7) {
+            $this->breakupContinent->setPriority(99);
+        } else {
+            $this->breakupContinent->setPriority(1);
+        }
+
         // set priorities, reversed order
         $i = 1;
         foreach ($priorityQueue as $captureStrategy) {
@@ -154,9 +167,9 @@ class FirstBot extends \Mastercoding\Conquest\Bot\StrategicBot
         }
 
         // breakup
-        $breakupContinent = new \Helpless\Bot\Strategy\BreakupContinent;
-        $breakupContinent->setPriority(99);
-        $this->addStrategy($breakupContinent);
+        $this->breakupContinent = new \Helpless\Bot\Strategy\BreakupContinent;
+        $this->breakupContinent->setPriority(1);
+        $this->addStrategy($this->breakupContinent);
 
         // to new continent - before 3 largest continents
         $crossToNew = new \Helpless\Bot\Strategy\CrossToNewContinent;
